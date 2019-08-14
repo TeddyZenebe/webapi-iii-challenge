@@ -1,47 +1,118 @@
-const express = 'express';
-
+const express = require('express');
+const usersDb = require('./userDb');
+const postDb = require('../posts/postDb');
 const router = express.Router();
 
-router.post('/', (req, res) => {
-
+router.post('/',validateUser, (req, res) => {
+        const newUser =req.body
+        usersDb.insert(newUser)
+               .then(newuser=>res.status(201).json(newuser))
+               .catch(error=>{
+                console.log(error)   
+                res.status(500).json({message:'Error processing request'})})
 });
 
-router.post('/:id/posts', (req, res) => {
-
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+      const id = req.params.id
+      const text =req.body.text
+      const newpost = { text, user_id: id}
+       postDb.insert(newpost)
+       .then(newpost=>{res.status(201).json(newpost)})
+       .catch(error=>{
+        console.log(error)   
+        res.status(500).json({message:'There was an error while saving the post to the database'})})
+            
 });
 
 router.get('/', (req, res) => {
+   usersDb.get()
+          .then(user=>{res.status(200).json(user)})
+          .catch(error=>{
+                  console.log(error)   
+                  res.status(500).json({message:'The users information could not be retrieved.'})})
+});
+
+router.get('/:id', validateUserId, (req, res) => {
+        const id = req.params.id
+    usersDb.getById(id)
+           .then(user=>res.status(200).json(user))
+           .catch(error =>{
+                   console.log(error)
+                   res.status(500).json({message:'Error processing request'})
+           })
+});
+
+router.get('/:id/posts', validateUserId, (req, res) => {
+        const  id = req.params.id
+        usersDb.getUserPosts(id)
+                .then(userPosts=>res.status(200).json(userPosts))
+                .catch(error =>{
+                console.log(error)
+                res.status(500).json({message:'Error processing request'})
+        })
 
 });
 
-router.get('/:id', (req, res) => {
-
+router.delete('/:id', validateUserId, (req, res) => {
+        const id = req.params.id
+        usersDb.remove(id)
+        .then(deleted=>res.status(200).json(deleted))
+        .catch(error =>{
+                console.log(error)
+                res.status(500).json({message:'The user could not be removed'})
+        })
+               
 });
 
-router.get('/:id/posts', (req, res) => {
-
-});
-
-router.delete('/:id', (req, res) => {
-
-});
-
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUserId, (req, res) => {
+        const id = req.params.id
+        const updated = req.body
+        usersDb.update(id,updated)
+        .then(updated=>res.status(201).json(updated))
+        .catch(error =>{
+                console.log(error)
+                res.status(500).json({message:'The user information could not be modified.'})
+        })
 
 });
 
 //custom middleware
 
-function validateUserId(req, res, next) {
-
+function validateUserId (req, res, next) {
+        const  id = req.params.id
+        usersDb.getById(id)
+        .then(users=>{
+                if (users) {
+                        next()
+                        
+                     } else {
+                        res.status(404).json({ message: "The user with the specified ID does not exist." })
+                         } 
+        })
+        .catch(error =>{
+                console.log(error)
+                res.status(500).json({message:'Error processing request'})
+        })
+        
+           
 };
 
 function validateUser(req, res, next) {
-
+        if (req.body && Object.keys(req.body).length > 1) {
+                next()
+                
+            }else {
+              res.status(400).json({ errorMessage: "Please provide user name." })
+            }
 };
 
 function validatePost(req, res, next) {
-
+        if (req.body && Object.keys(req.body).length > 1) {
+                next()
+                
+            }else {
+              res.status(400).json({ errorMessage: "Please provide the text body." })
+            }
 };
 
 module.exports = router;
