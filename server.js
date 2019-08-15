@@ -15,7 +15,7 @@ server.get('/', (req, res) => {
 
 function logger(req, res, next) {
   const time = new Date()
-  console.log(req.method, time ,userRouter)
+  console.log(req.method, time , `http://localhost:4000${req.originalUrl}`)
   next()
 };
 
