@@ -1,5 +1,5 @@
 const express = require('express');
-const userRouter =require('./users/userRouter')
+const userRouter = require('./users/userRouter')
 const server = express();
 
 server.use(express.json())
@@ -15,7 +15,7 @@ server.get('/', (req, res) => {
 
 function logger(req, res, next) {
   const time = new Date()
-  console.log(req.method, time , `http://localhost:4000${req.originalUrl}`)
+  console.log(req.method, time, `http://localhost:4000${req.originalUrl}`)
   next()
 };
 
