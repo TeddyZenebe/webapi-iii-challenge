@@ -81,12 +81,13 @@ router.put('/:id', validateUserId, (req, res) => {
 function validateUserId (req, res, next) {
         const  id = req.params.id
         usersDb.getById(id)
-        .then(users=>{
-                if (users) {
+        .then(user=>{
+                if (user) {
+                        req.use=user
                         next()
                         
                      } else {
-                        res.status(404).json({ message: "The user with the specified ID does not exist." })
+                        res.status(400).json({ message: "invalid user id" })
                          } 
         })
         .catch(error =>{
@@ -98,21 +99,25 @@ function validateUserId (req, res, next) {
 };
 
 function validateUser(req, res, next) {
-        if (req.body && Object.keys(req.body).length > 1) {
-                next()
-                
-            }else {
-              res.status(400).json({ errorMessage: "Please provide user name." })
-            }
+        if (!(Object.keys(req.body).length > 0 && Object.values(req.body).length > 0)) {
+               res.status(400).json({ message: "missing user data" }) 
+        }       
+          else{ if(!req.body.name){
+                res.status(404).json({  message: "missing required name field" })
+                } else 
+                    {  next()  }
+                }
 };
 
 function validatePost(req, res, next) {
-        if (req.body && Object.keys(req.body).length > 1) {
-                next()
-                
-            }else {
-              res.status(400).json({ errorMessage: "Please provide the text body." })
-            }
+        if (!(Object.keys(req.body).length > 0 && Object.values(req.body).length > 0)) {
+                res.status(400).json({message: "missing post data"  }) 
+         }       
+           else{ if(!req.body.text){
+                 res.status(404).json({  message: "missing required text field" })
+                 } else 
+                     {  next()  }
+                 }
 };
 
 module.exports = router;
